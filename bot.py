@@ -1,3 +1,10 @@
+import threading
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def home(): return "Bot Alive"
+threading.Thread(target=lambda: app.run(host='0.0.0.0', port=10000)).start()
+
 import os, re, requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
