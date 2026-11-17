@@ -3,16 +3,23 @@ from flask import Flask
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# Ye 2 line sabse important hai - isse wo loop wala error nahi aayega
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
+# Python 3.14 fix - loop ko force set karo
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def home(): return "Bot Alive"
 
-threading.Thread(target=lambda: flask_app.run(host='0.0.0.0', port=10000), daemon=True).start()
+def run_flask():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    flask_app.run(host='0.0.0.0', port=10000)
+
+threading.Thread(target=run_flask, daemon=True).start()
 
 API_ID = int(os.environ.get("API_ID", "0"))
 API_HASH = os.environ.get("API_HASH", "")
@@ -73,4 +80,6 @@ async def handle(client, message):
                     await app.send_animation(ch, pending['file_id'], caption=pending['caption'], reply_markup=buttons)
             pending = {}
 
-app.run()
+if __name__ == "__main__":
+    asyncio.set_event_loop(loop)
+    app.run()
